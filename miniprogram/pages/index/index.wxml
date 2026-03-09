@@ -1,0 +1,36 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 全屏 Canvas 画布 -->
+  <canvas
+    id="gameCanvas"
+    type="2d"
+    class="game-canvas"
+  ></canvas>
+
+  <!-- 触摸层（始终存在，保证触摸事件不丢失） -->
+  <view
+    class="touch-overlay"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+    catchtouchcancel="onTouchEnd"
+  >
+    <view class="hint-text" wx:if="{{showHint}}">所有人，把手指放上来</view>
+  </view>
+
+  <!-- 设置按钮（首屏或结果态显示） -->
+  <view class="settings-btn" catchtap="goSettings" wx:if="{{showHint || state === 'result'}}">
+    <view class="settings-icon">⚙</view>
+  </view>
+
+  <!-- 当前模式提示 -->
+  <view class="mode-badge" wx:if="{{showHint}}">
+    <text>{{modeName}}</text>
+  </view>
+
+  <!-- 状态提示（人数不足等） -->
+  <view class="status-toast {{statusText ? 'toast-show' : 'toast-hide'}}" wx:if="{{statusText}}">
+    <text>{{statusText}}</text>
+  </view>
+
+</view>

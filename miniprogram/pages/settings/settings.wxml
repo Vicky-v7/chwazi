@@ -1,0 +1,124 @@
+<!-- pages/settings/settings.wxml -->
+<view class="page">
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goBack">
+        <text class="back-arrow">←</text>
+      </view>
+      <text class="nav-title">设置</text>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+
+  <view class="content" style="padding-top: {{navHeight}}px;">
+    <!-- 模式选择 -->
+    <view class="section">
+      <view class="section-title">选择模式</view>
+
+      <view class="mode-list">
+        <view
+          class="mode-item {{mode === 'single' ? 'active' : ''}}"
+          bindtap="setMode"
+          data-mode="single"
+        >
+          <view class="mode-icon">👆</view>
+          <view class="mode-info">
+            <view class="mode-name">随机选一人</view>
+            <view class="mode-desc">从所有人中随机选出一个</view>
+          </view>
+          <view class="mode-check" wx:if="{{mode === 'single'}}">✓</view>
+        </view>
+
+        <view
+          class="mode-item {{mode === 'multi' ? 'active' : ''}}"
+          bindtap="setMode"
+          data-mode="multi"
+        >
+          <view class="mode-icon">👥</view>
+          <view class="mode-info">
+            <view class="mode-name">随机选多人</view>
+            <view class="mode-desc">从所有人中随机选出指定数量</view>
+          </view>
+          <view class="mode-check" wx:if="{{mode === 'multi'}}">✓</view>
+        </view>
+
+        <view
+          class="mode-item {{mode === 'group' ? 'active' : ''}}"
+          bindtap="setMode"
+          data-mode="group"
+        >
+          <view class="mode-icon">👨‍👩‍👧‍👦</view>
+          <view class="mode-info">
+            <view class="mode-name">随机分组</view>
+            <view class="mode-desc">将所有人随机分成几组</view>
+          </view>
+          <view class="mode-check" wx:if="{{mode === 'group'}}">✓</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 多选数量（multi模式） -->
+    <view class="section" wx:if="{{mode === 'multi'}}">
+      <view class="section-title">选中人数</view>
+      <view class="counter">
+        <view class="counter-btn {{selectCount <= 2 ? 'disabled' : ''}}" bindtap="decreaseSelectCount">
+          <text>−</text>
+        </view>
+        <view class="counter-value">{{selectCount}}</view>
+        <view class="counter-btn {{selectCount >= 9 ? 'disabled' : ''}}" bindtap="increaseSelectCount">
+          <text>+</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分组数量（group模式） -->
+    <view class="section" wx:if="{{mode === 'group'}}">
+      <view class="section-title">分组数量</view>
+      <view class="counter">
+        <view class="counter-btn {{groupCount <= 2 ? 'disabled' : ''}}" bindtap="decreaseGroupCount">
+          <text>−</text>
+        </view>
+        <view class="counter-value">{{groupCount}}</view>
+        <view class="counter-btn {{groupCount >= 6 ? 'disabled' : ''}}" bindtap="increaseGroupCount">
+          <text>+</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 其他设置 -->
+    <view class="section">
+      <view class="section-title">其他</view>
+
+      <view class="setting-item">
+        <text class="setting-label">音效</text>
+        <switch
+          checked="{{soundEnabled}}"
+          bindchange="toggleSound"
+          color="#5B8DEF"
+        />
+      </view>
+
+      <view class="setting-item">
+        <text class="setting-label">震动反馈</text>
+        <switch
+          checked="{{vibrateEnabled}}"
+          bindchange="toggleVibrate"
+          color="#5B8DEF"
+        />
+      </view>
+    </view>
+
+    <!-- 关于 -->
+    <view class="section">
+      <view class="section-title">关于</view>
+      <view class="about-text">
+        <text>Chwazi吃袜子选人</text>
+        <text class="about-version">v1.0.0</text>
+      </view>
+      <view class="about-desc">
+        <text>把命运交给手指！所有人按住屏幕，屏息等待——被选中的就是天选之人。聚餐买单、桌游先手、团建分组、KTV选歌，一按搞定。不怪我，是手机选的。</text>
+      </view>
+    </view>
+  </view>
+</view>

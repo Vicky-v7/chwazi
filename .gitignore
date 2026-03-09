@@ -1,0 +1,6 @@
+.DS_Store
+miniprogram/project.private.config.json
+.claude/
+.mcp.json
+_pf_parts/
+promptfolio_payload.json

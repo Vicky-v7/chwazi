@@ -1,0 +1,113 @@
+/* pages/index/index.wxss */
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #0a0a0a;
+}
+
+.game-canvas {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* 触摸层（始终覆盖全屏，保证触摸事件不丢失） */
+.touch-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.hint-text {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 40rpx;
+  font-weight: 300;
+  letter-spacing: 6rpx;
+  animation: hint-breath 3s ease-in-out infinite;
+}
+
+@keyframes hint-breath {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+
+/* 设置按钮 */
+.settings-btn {
+  position: absolute;
+  bottom: calc(80rpx + env(safe-area-inset-bottom));
+  right: 40rpx;
+  width: 84rpx;
+  height: 84rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  z-index: 20;
+  transition: background-color 0.2s;
+}
+
+.settings-btn:active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.settings-icon {
+  font-size: 42rpx;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 模式标识 */
+.mode-badge {
+  position: absolute;
+  bottom: calc(92rpx + env(safe-area-inset-bottom));
+  left: 40rpx;
+  padding: 10rpx 28rpx;
+  border-radius: 32rpx;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.mode-badge text {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+/* 状态提示 */
+.status-toast {
+  position: absolute;
+  top: calc(120rpx + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14rpx 36rpx;
+  border-radius: 32rpx;
+  background-color: rgba(255, 255, 255, 0.1);
+  z-index: 20;
+  pointer-events: none;
+  animation: toast-in 0.3s ease-out;
+}
+
+.status-toast text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 26rpx;
+  white-space: nowrap;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10rpx); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
