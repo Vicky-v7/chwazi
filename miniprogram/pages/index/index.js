@@ -58,6 +58,7 @@ Page({
     this.fingerOrder = []
     this.resetDelayTimer = null
     this.statusClearTimer = null
+    this.roundId = 0  // 轮次 id，用于丢弃过期回调
   },
 
   onReady() {
@@ -87,13 +88,18 @@ Page({
     if (this.animationId && this.cancelFrame) {
       this.cancelFrame(this.animationId)
     }
-    if (this.stableTimer) clearTimeout(this.stableTimer)
-    if (this.selectionTimer) clearTimeout(this.selectionTimer)
-    if (this.resetDelayTimer) clearTimeout(this.resetDelayTimer)
-    if (this.statusClearTimer) clearTimeout(this.statusClearTimer)
+    this.cancelTimers()
     if (this.tapSound) this.tapSound.destroy()
     if (this.selectSound) this.selectSound.destroy()
     resetColorIndex()
+  },
+
+  /** 统一清理所有定时器 */
+  cancelTimers() {
+    if (this.stableTimer) { clearTimeout(this.stableTimer); this.stableTimer = null }
+    if (this.selectionTimer) { clearTimeout(this.selectionTimer); this.selectionTimer = null }
+    if (this.resetDelayTimer) { clearTimeout(this.resetDelayTimer); this.resetDelayTimer = null }
+    if (this.statusClearTimer) { clearTimeout(this.statusClearTimer); this.statusClearTimer = null }
   },
 
   // ========== 初始化 ==========
@@ -136,11 +142,11 @@ Page({
     this.selectSound = this.createSoundContext('select', [
       '/assets/sounds/select.wav',
       'assets/sounds/select.wav',
-    ], 0.6)
+    ], 0.5)
     this.tapSound = this.createSoundContext('tap', [
       '/assets/sounds/tap.wav',
       'assets/sounds/tap.wav',
-    ], 0.35)
+    ], 0.25)
   },
 
   createSoundContext(name, sources, volume = 1.0) {
@@ -254,7 +260,9 @@ Page({
         })
       if (Object.keys(this.fingers).length === 0) {
         if (this.resetDelayTimer) clearTimeout(this.resetDelayTimer)
+        const rid = this.roundId
         this.resetDelayTimer = setTimeout(() => {
+          if (this.roundId !== rid) return  // 过期回调，丢弃
           this.resetDelayTimer = null
           this.resetGame()
         }, 300)
@@ -305,7 +313,9 @@ Page({
     }
 
     this.waitingSince = Date.now()
+    const rid = this.roundId
     this.stableTimer = setTimeout(() => {
+      if (this.roundId !== rid) return  // 过期回调，丢弃
       this.startSelection()
     }, CONFIG.STABLE_DELAY)
   },
@@ -355,7 +365,9 @@ Page({
       this.groupIndexMap = {}
     }
 
+    const rid = this.roundId
     this.selectionTimer = setTimeout(() => {
+      if (this.roundId !== rid) return  // 过期回调，丢弃
       this.selectionTimer = null
       this.onSelectionComplete()
     }, CONFIG.SELECT_ANIM_DURATION)
@@ -383,7 +395,9 @@ Page({
     const app = getApp()
     if (app.globalData.vibrateEnabled) {
       wx.vibrateShort({ type: 'heavy' })
+      const rid = this.roundId
       setTimeout(() => {
+        if (this.roundId !== rid) return
         wx.vibrateShort({ type: 'light' })
       }, 120)
     }
@@ -393,7 +407,9 @@ Page({
     // statusText 自动消失
     if (this.data.statusText) {
       if (this.statusClearTimer) clearTimeout(this.statusClearTimer)
+      const rid = this.roundId
       this.statusClearTimer = setTimeout(() => {
+        if (this.roundId !== rid) return  // 过期回调，丢弃
         this.statusClearTimer = null
         this.setData({ statusText: '' })
       }, 2000)
@@ -401,6 +417,7 @@ Page({
   },
 
   resetGame() {
+    this.roundId++  // 递增轮次，让旧回调自动失效
     this.state = STATE.IDLE
     this.setData({ state: STATE.IDLE })
     this.fingers = {}
@@ -411,22 +428,7 @@ Page({
     this.waitingSince = 0
     resetColorIndex()
 
-    if (this.stableTimer) {
-      clearTimeout(this.stableTimer)
-      this.stableTimer = null
-    }
-    if (this.selectionTimer) {
-      clearTimeout(this.selectionTimer)
-      this.selectionTimer = null
-    }
-    if (this.resetDelayTimer) {
-      clearTimeout(this.resetDelayTimer)
-      this.resetDelayTimer = null
-    }
-    if (this.statusClearTimer) {
-      clearTimeout(this.statusClearTimer)
-      this.statusClearTimer = null
-    }
+    this.cancelTimers()
 
     this.setData({ showHint: true, statusText: '' })
     this.updateModeDisplay()

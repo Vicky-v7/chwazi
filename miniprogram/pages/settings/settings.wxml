@@ -113,7 +113,7 @@
     <view class="section">
       <view class="section-title">关于</view>
       <view class="about-text">
-        <text>Chwazi吃袜子选人</text>
+        <text>Chwazi手指选人</text>
         <text class="about-version">v1.0.0</text>
       </view>
       <view class="about-desc">
