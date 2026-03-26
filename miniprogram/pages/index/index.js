@@ -94,6 +94,21 @@ Page({
     resetColorIndex()
   },
 
+  // ========== 分享 ==========
+
+  onShareAppMessage() {
+    return {
+      title: '所有人把手指放上来！随机帮你选',
+      path: '/pages/index/index',
+    }
+  },
+
+  onShareTimeline() {
+    return {
+      title: 'Chwazi手指选人 - 聚会选人神器',
+    }
+  },
+
   /** 统一清理所有定时器 */
   cancelTimers() {
     if (this.stableTimer) { clearTimeout(this.stableTimer); this.stableTimer = null }

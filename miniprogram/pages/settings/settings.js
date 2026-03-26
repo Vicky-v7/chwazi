@@ -107,6 +107,15 @@ Page({
     }
   },
 
+  // ========== 分享 ==========
+
+  onShareAppMessage() {
+    return {
+      title: '所有人把手指放上来！随机帮你选',
+      path: '/pages/index/index',
+    }
+  },
+
   // ========== 导航 ==========
 
   goBack() {
