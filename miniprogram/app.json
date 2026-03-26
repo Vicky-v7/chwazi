@@ -8,5 +8,6 @@
     "backgroundColor": "#000000",
     "backgroundTextStyle": "light"
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
 }
