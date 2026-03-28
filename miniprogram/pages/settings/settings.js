@@ -29,6 +29,11 @@ Page({
       statusBarHeight,
       navHeight,
     })
+
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline'],
+    })
   },
 
   onUnload() {
@@ -113,6 +118,12 @@ Page({
     return {
       title: '所有人把手指放上来！随机帮你选',
       path: '/pages/index/index',
+    }
+  },
+
+  onShareTimeline() {
+    return {
+      title: 'Chwazi手指选人 - 聚会选人神器',
     }
   },
 

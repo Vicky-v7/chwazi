@@ -59,6 +59,11 @@ Page({
     this.resetDelayTimer = null
     this.statusClearTimer = null
     this.roundId = 0  // 轮次 id，用于丢弃过期回调
+
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline'],
+    })
   },
 
   onReady() {
