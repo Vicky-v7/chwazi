@@ -107,12 +107,14 @@ Page({
     return {
       title: '所有人把手指放上来！随机帮你选',
       path: '/pages/index/index',
+      imageUrl: '/assets/share-cover.png',
     }
   },
 
   onShareTimeline() {
     return {
       title: 'Chwazi手指选人 - 聚会选人神器',
+      imageUrl: '/assets/share-cover.png',
     }
   },
 
@@ -553,14 +555,45 @@ Page({
   },
 
   drawBackground(ctx, w, h, now) {
-    // 根据状态微调背景
+    // RESULT 态：背景渐变为选中圆圈的颜色
+    if (this.state === STATE.RESULT && this.selectedIds.length > 0) {
+      const firstSelected = this.fingers[this.selectedIds[0]]
+      if (firstSelected) {
+        const resultElapsed = now - this.resultTime
+        const fadeIn = Math.min(1, resultElapsed / 600)  // 600ms 渐入
+        const t = easeOut(fadeIn)
+
+        // 从深色底渐变到选中颜色的深色版本
+        const rgba = hexToRgba(firstSelected.color, 1)
+        const match = rgba.match(/[\d.]+/g)
+        const cr = parseInt(match[0])
+        const cg = parseInt(match[1])
+        const cb = parseInt(match[2])
+
+        // 背景用选中色的暗版（约30%亮度），中心稍亮
+        const centerBright = Math.round(0.35 * t * 255) / 255
+        const edgeBright = Math.round(0.18 * t * 255) / 255
+
+        const centerX = w / 2
+        const centerY = h / 2
+        const radius = Math.max(w, h) * 0.9
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius)
+
+        const blend = (base, color, mix) => Math.round(base * (1 - mix) + color * mix)
+        gradient.addColorStop(0, `rgb(${blend(18, cr, centerBright)},${blend(25, cg, centerBright)},${blend(38, cb, centerBright)})`)
+        gradient.addColorStop(0.5, `rgb(${blend(11, cr, edgeBright)},${blend(15, cg, edgeBright)},${blend(24, cb, edgeBright)})`)
+        gradient.addColorStop(1, `rgb(${blend(7, cr, edgeBright * 0.5)},${blend(9, cg, edgeBright * 0.5)},${blend(15, cb, edgeBright * 0.5)})`)
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, w, h)
+        return
+      }
+    }
+
+    // 非 RESULT 态的默认背景
     let brightBoost = 0
     if (this.state === STATE.SELECTING) {
       const progress = Math.min(1, (now - this.selectStartTime) / CONFIG.SELECT_ANIM_DURATION)
       brightBoost = Math.sin(progress * Math.PI) * 0.03
-    } else if (this.state === STATE.RESULT) {
-      const resultElapsed = now - this.resultTime
-      brightBoost = Math.max(0, 0.08 - resultElapsed / 3000 * 0.08)
     }
 
     const centerX = w * (0.5 + Math.sin(now / 6200) * 0.06)

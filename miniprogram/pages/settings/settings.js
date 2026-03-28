@@ -118,12 +118,14 @@ Page({
     return {
       title: '所有人把手指放上来！随机帮你选',
       path: '/pages/index/index',
+      imageUrl: '/assets/share-cover.png',
     }
   },
 
   onShareTimeline() {
     return {
       title: 'Chwazi手指选人 - 聚会选人神器',
+      imageUrl: '/assets/share-cover.png',
     }
   },
 
