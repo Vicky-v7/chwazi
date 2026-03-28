@@ -29,7 +29,7 @@
   </view>
 
   <!-- 状态提示（人数不足等） -->
-  <view class="status-toast {{statusText ? 'toast-show' : 'toast-hide'}}" wx:if="{{statusText}}">
+  <view class="status-toast {{toastFading ? 'toast-hide' : 'toast-show'}}" wx:if="{{toastVisible}}">
     <text>{{statusText}}</text>
   </view>
 

@@ -35,6 +35,8 @@ Page({
     showHint: true,
     modeName: '随机选一人',
     statusText: '',
+    toastVisible: false,
+    toastFading: false,
     state: 'idle',
   },
 
@@ -120,6 +122,23 @@ Page({
     if (this.selectionTimer) { clearTimeout(this.selectionTimer); this.selectionTimer = null }
     if (this.resetDelayTimer) { clearTimeout(this.resetDelayTimer); this.resetDelayTimer = null }
     if (this.statusClearTimer) { clearTimeout(this.statusClearTimer); this.statusClearTimer = null }
+    if (this.toastFadeTimer) { clearTimeout(this.toastFadeTimer); this.toastFadeTimer = null }
+  },
+
+  showToast(text) {
+    if (this.statusClearTimer) { clearTimeout(this.statusClearTimer); this.statusClearTimer = null }
+    if (this.toastFadeTimer) { clearTimeout(this.toastFadeTimer); this.toastFadeTimer = null }
+    this.setData({ statusText: text, toastVisible: true, toastFading: false })
+  },
+
+  hideToast() {
+    if (!this.data.toastVisible) return
+    if (this.toastFadeTimer) { clearTimeout(this.toastFadeTimer); this.toastFadeTimer = null }
+    this.setData({ toastFading: true })
+    this.toastFadeTimer = setTimeout(() => {
+      this.toastFadeTimer = null
+      this.setData({ statusText: '', toastVisible: false, toastFading: false })
+    }, 250)  // 与 toast-out 动画时长一致
   },
 
   // ========== 初始化 ==========
@@ -318,18 +337,18 @@ Page({
 
     if (fingerCount < 2) {
       this.waitingSince = 0
-      this.setData({ statusText: '再多放一根手指' })
+      this.showToast('再多放一根手指')
       return
     }
     if (mode === 'group' && fingerCount < groupCount) {
       this.waitingSince = 0
-      this.setData({ statusText: `至少需要 ${groupCount} 人才能分组` })
+      this.showToast(`至少需要 ${groupCount} 人才能分组`)
       return
     }
 
     // 条件满足，清除之前的不足提示
-    if (this.data.statusText && this.data.statusText !== '') {
-      this.setData({ statusText: '' })
+    if (this.data.toastVisible) {
+      this.hideToast()
     }
 
     this.waitingSince = Date.now()
@@ -377,7 +396,7 @@ Page({
       const count = mode === 'multi' ? Math.min(selectCount, ids.length) : 1
       // 多选模式下实际人数不足设定值时提示
       if (mode === 'multi' && ids.length <= selectCount) {
-        this.setData({ statusText: `仅 ${ids.length} 人，已全部选中` })
+        this.showToast(`仅 ${ids.length} 人，已全部选中`)
       }
       this.selectedIds = randomSelect(ids, count)
       this.selectedSet = new Set(this.selectedIds)
@@ -425,13 +444,13 @@ Page({
     this.playSelectSound()
 
     // statusText 自动消失
-    if (this.data.statusText) {
+    if (this.data.toastVisible) {
       if (this.statusClearTimer) clearTimeout(this.statusClearTimer)
       const rid = this.roundId
       this.statusClearTimer = setTimeout(() => {
         if (this.roundId !== rid) return  // 过期回调，丢弃
         this.statusClearTimer = null
-        this.setData({ statusText: '' })
+        this.hideToast()
       }, 2000)
     }
   },
@@ -450,7 +469,7 @@ Page({
 
     this.cancelTimers()
 
-    this.setData({ showHint: true, statusText: '' })
+    this.setData({ showHint: true, statusText: '', toastVisible: false, toastFading: false })
     this.updateModeDisplay()
   },
 
