@@ -101,6 +101,8 @@ Page({
     const { mode, selectCount, groupCount, soundEnabled, vibrateEnabled } = this.data
     Object.assign(app.globalData, { mode, selectCount, groupCount, soundEnabled, vibrateEnabled })
     app.saveSettings()
+    // We 分析：设置变更 → 深度使用指标
+    try { wx.reportEvent && wx.reportEvent('settings_changed', { mode }) } catch (_) {}
   },
 
   triggerLightVibrate() {
