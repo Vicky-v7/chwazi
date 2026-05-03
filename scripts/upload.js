@@ -1,21 +1,49 @@
 // 微信小程序自动上传脚本
 // 用法: node scripts/upload.js
+
+// Node 18+ localStorage polyfill — miniprogram-ci 内部依赖
+const _store = {}
+global.localStorage = {
+  getItem: (k) => (k in _store ? _store[k] : null),
+  setItem: (k, v) => { _store[k] = String(v) },
+  removeItem: (k) => { delete _store[k] },
+  clear: () => { for (const k in _store) delete _store[k] },
+  key: (i) => Object.keys(_store)[i] || null,
+  get length() { return Object.keys(_store).length },
+}
+
 const ci = require('miniprogram-ci')
 const path = require('path')
 const fs = require('fs')
 
 const APPID = 'wx64cf3f29560527bc'
-const VERSION = '1.0.5'
 const KEY_PATH = path.resolve(__dirname, '..', `private.${APPID}.key`)
 const PROJECT_PATH = path.resolve(__dirname, '..', 'miniprogram')
+const CHANGELOG_PATH = path.resolve(__dirname, '..', 'CHANGELOG.md')
 
-const DESC = [
-  '1. 新增数据埋点（分享/再来一轮/完成选人/设置变更）',
-  '2. 鸿蒙系统首次进入提示双指手势冲突',
-  '3. 修复多指 cancel 时圆圈被误清除',
-  '4. 稳定时间 1.5s→2s，与文案对齐',
-  '5. 圆圈渐变重做，颜色更通透',
-].join('\n')
+// 自动从 CHANGELOG.md 第一个版本块读取 VERSION + DESC
+function parseChangelog() {
+  const text = fs.readFileSync(CHANGELOG_PATH, 'utf-8')
+  const lines = text.split('\n')
+  let version = null
+  const desc = []
+  let inBlock = false
+  for (const line of lines) {
+    const m = line.match(/^##\s+([0-9]+\.[0-9]+\.[0-9]+)/)
+    if (m) {
+      if (inBlock) break
+      version = m[1]
+      inBlock = true
+      continue
+    }
+    if (inBlock && line.trim()) desc.push(line.trim())
+  }
+  if (!version) throw new Error('CHANGELOG.md 里没找到版本号（## x.y.z）')
+  // 微信备注上限 1024 字符
+  return { version, desc: desc.join('\n').slice(0, 1024) }
+}
+
+const { version: VERSION, desc: DESC } = parseChangelog()
 
 if (!fs.existsSync(KEY_PATH)) {
   console.error(`❌ 找不到上传密钥: ${KEY_PATH}`)
