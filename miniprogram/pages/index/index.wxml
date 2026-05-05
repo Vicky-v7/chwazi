@@ -18,6 +18,7 @@
     <view class="hint-wrap" wx:if="{{showHint}}">
       <view class="hint-text">所有人，把手指放上来</view>
       <view class="hint-sub">稳住 2 秒，自动开始选人</view>
+      <view class="hint-scenes">桌游聚会 · 班级抽签 · 团建破冰 · 谁洗碗 · 酒局先手</view>
     </view>
   </view>
 

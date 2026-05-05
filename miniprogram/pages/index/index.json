@@ -1,5 +1,6 @@
 {
   "navigationStyle": "custom",
   "disableScroll": true,
-  "pageOrientation": "portrait"
+  "pageOrientation": "portrait",
+  "navigationBarTitleText": "Chwazi手指选人 - 桌游聚会派对神器"
 }

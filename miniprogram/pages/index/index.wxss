@@ -51,6 +51,14 @@
   margin-top: 18rpx;
 }
 
+.hint-scenes {
+  color: rgba(255, 255, 255, 0.18);
+  font-size: 22rpx;
+  font-weight: 300;
+  letter-spacing: 2rpx;
+  margin-top: 60rpx;
+}
+
 @keyframes hint-breath {
   0%, 100% { opacity: 0.45; transform: scale(1); }
   50% { opacity: 0.9; transform: scale(1.02); }

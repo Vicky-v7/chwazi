@@ -1,4 +1,5 @@
 {
   "navigationStyle": "custom",
-  "disableScroll": false
+  "disableScroll": false,
+  "navigationBarTitleText": "选人设置 - 多选/分组/班级抽签"
 }
