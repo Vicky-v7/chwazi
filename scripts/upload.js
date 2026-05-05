@@ -1,20 +1,19 @@
 // 微信小程序自动上传脚本
-// 用法: node scripts/upload.js
+// 用法: npm run upload  (推荐)  或  node scripts/upload.js
 
-// Node 18+ localStorage polyfill — miniprogram-ci 内部依赖
-const _store = {}
-global.localStorage = {
-  getItem: (k) => (k in _store ? _store[k] : null),
-  setItem: (k, v) => { _store[k] = String(v) },
-  removeItem: (k) => { delete _store[k] },
-  clear: () => { for (const k in _store) delete _store[k] },
-  key: (i) => Object.keys(_store)[i] || null,
-  get length() { return Object.keys(_store).length },
+const path = require('path')
+const fs = require('fs')
+
+// 1) 当前进程加载 localStorage polyfill
+require(path.resolve(__dirname, 'polyfill-localstorage.js'))
+// 2) 给后续 miniprogram-ci fork 出来的子进程也注入 polyfill（绝对路径）
+const _polyfillAbs = path.resolve(__dirname, 'polyfill-localstorage.js')
+const _existing = process.env.NODE_OPTIONS || ''
+if (!_existing.includes(_polyfillAbs)) {
+  process.env.NODE_OPTIONS = `${_existing} --require ${JSON.stringify(_polyfillAbs)}`.trim()
 }
 
 const ci = require('miniprogram-ci')
-const path = require('path')
-const fs = require('fs')
 
 const APPID = 'wx64cf3f29560527bc'
 const KEY_PATH = path.resolve(__dirname, '..', `private.${APPID}.key`)

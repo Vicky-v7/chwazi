@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "upload": "node --require ./scripts/polyfill-localstorage.js scripts/upload.js"
+    "upload": "node scripts/upload.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Vicky-v7/chwazi#readme",
   "devDependencies": {
+    "dotenv": "^17.4.2",
     "miniprogram-ci": "^2.1.31"
   }
 }
