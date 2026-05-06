@@ -27,6 +27,11 @@
     <view class="settings-icon">⚙</view>
   </view>
 
+  <!-- 分享按钮（仅结果态） -->
+  <view class="share-btn" catchtap="goShare" wx:if="{{state === 'result'}}">
+    <view class="share-icon">↗</view>
+  </view>
+
   <!-- 当前模式提示 -->
   <view class="mode-badge" wx:if="{{showHint}}">
     <text>{{modeName}}</text>

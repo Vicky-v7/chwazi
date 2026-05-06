@@ -163,6 +163,54 @@ Page({
     }
   },
 
+  // ========== 分享 v1.0.7：海报 / 公众号贴图 ==========
+
+  goShare() {
+    if (this.state !== STATE.RESULT) return
+    this.canvasToTempFile()
+      .then((tempPath) => this.showShareSheet(tempPath))
+      .catch(() => wx.showToast({ title: '生成图片失败', icon: 'none' }))
+  },
+
+  canvasToTempFile() {
+    return new Promise((resolve, reject) => {
+      if (!this.canvas) return reject(new Error('no canvas'))
+      wx.canvasToTempFilePath({
+        canvas: this.canvas,
+        success: (res) => resolve(res.tempFilePath),
+        fail: reject,
+      })
+    })
+  },
+
+  showShareSheet(tempPath) {
+    const hasOA = typeof wx.shareToOfficialAccount === 'function'
+    const items = ['分享海报到朋友圈/好友']
+    if (hasOA) items.push('发表到公众号贴图')
+
+    wx.showActionSheet({
+      itemList: items,
+      success: ({ tapIndex }) => {
+        if (tapIndex === 0) {
+          wx.showShareImageMenu({ path: tempPath })
+          try { wx.reportEvent && wx.reportEvent('share_result', { channel: 'image' }) } catch (_) {}
+        } else if (tapIndex === 1 && hasOA) {
+          wx.shareToOfficialAccount({
+            title: '我用 Chwazi 选中了谁',
+            content: '所有人按住屏幕，命运随机选中一人——桌游聚会、班级抽签必备',
+            tags: ['来微信做个小程序', '手指选人', '桌游聚会'],
+            images: [tempPath],
+            path: '/pages/index/index',
+            success: () => {
+              wx.showToast({ title: '已发表', icon: 'success' })
+              try { wx.reportEvent && wx.reportEvent('share_result', { channel: 'official_account' }) } catch (_) {}
+            },
+          })
+        }
+      },
+    })
+  },
+
   /** 统一清理所有定时器 */
   cancelTimers() {
     if (this.stableTimer) { clearTimeout(this.stableTimer); this.stableTimer = null }
