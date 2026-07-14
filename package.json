@@ -1,0 +1,25 @@
+{
+  "name": "chwazi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "upload": "node scripts/upload.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vicky-v7/chwazi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Vicky-v7/chwazi/issues"
+  },
+  "homepage": "https://github.com/Vicky-v7/chwazi#readme",
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "miniprogram-ci": "^2.1.31"
+  }
+}

@@ -13,7 +13,7 @@ const STATE = {
 
 // 配置常量
 const CONFIG = {
-  STABLE_DELAY: 1500,         // 手指稳定后等待时间（ms）
+  STABLE_DELAY: 2000,         // 手指稳定后等待时间（ms）— 与首屏"稳住 2 秒"文案对齐
   SELECT_ANIM_DURATION: 1600, // 选择动画持续时间（ms）— 增加仪式感
   FINGER_RADIUS: 54,          // 手指圆圈最终半径（覆盖指尖大小）
   FINGER_GROW_DURATION: 300,  // 圆圈增长动画时长（ms）
@@ -38,6 +38,7 @@ Page({
     toastVisible: false,
     toastFading: false,
     state: 'idle',
+    showHarmonyTip: false,
   },
 
   // ========== 生命周期 ==========
@@ -66,6 +67,47 @@ Page({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline'],
     })
+
+    this.checkHarmonyHint()
+  },
+
+  // 鸿蒙系统首次进入非阻断提示（双指手势可能与系统截图/分屏冲突）
+  checkHarmonyHint() {
+    try {
+      const hinted = wx.getStorageSync('harmony_hinted')
+      if (hinted) return
+
+      const device = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync()
+      const system = (device.system || '').toLowerCase()
+      const platform = (device.platform || '').toLowerCase()
+      const brand = (device.brand || '').toLowerCase()
+      const isHarmony =
+        system.includes('harmony') ||
+        platform.includes('harmony') ||
+        platform === 'ohos' ||
+        brand === 'huawei' ||
+        brand === 'honor'
+
+      if (!isHarmony) return
+
+      this.setData({ showHarmonyTip: true })
+      this._harmonyTipTimer = setTimeout(() => {
+        this.dismissHarmonyTip()
+      }, 10000)
+    } catch (e) {
+      // 静默失败
+    }
+  },
+
+  dismissHarmonyTip() {
+    if (this._harmonyTipTimer) {
+      clearTimeout(this._harmonyTipTimer)
+      this._harmonyTipTimer = null
+    }
+    this.setData({ showHarmonyTip: false })
+    try {
+      wx.setStorageSync('harmony_hinted', true)
+    } catch (e) {}
   },
 
   onReady() {
@@ -104,6 +146,8 @@ Page({
   // ========== 分享 ==========
 
   onShareAppMessage() {
+    // We 分析：分享行为 → 传播率 K 因子
+    try { wx.reportEvent && wx.reportEvent('share_result', { channel: 'message' }) } catch (_) {}
     return {
       title: '所有人把手指放上来！随机帮你选',
       path: '/pages/index/index',
@@ -112,10 +156,59 @@ Page({
   },
 
   onShareTimeline() {
+    try { wx.reportEvent && wx.reportEvent('share_result', { channel: 'timeline' }) } catch (_) {}
     return {
       title: 'Chwazi手指选人 - 聚会选人神器',
       imageUrl: '/assets/share-cover.png',
     }
+  },
+
+  // ========== 分享 v1.0.7：海报 / 公众号贴图 ==========
+
+  goShare() {
+    if (this.state !== STATE.RESULT) return
+    this.canvasToTempFile()
+      .then((tempPath) => this.showShareSheet(tempPath))
+      .catch(() => wx.showToast({ title: '生成图片失败', icon: 'none' }))
+  },
+
+  canvasToTempFile() {
+    return new Promise((resolve, reject) => {
+      if (!this.canvas) return reject(new Error('no canvas'))
+      wx.canvasToTempFilePath({
+        canvas: this.canvas,
+        success: (res) => resolve(res.tempFilePath),
+        fail: reject,
+      })
+    })
+  },
+
+  showShareSheet(tempPath) {
+    const hasOA = typeof wx.shareToOfficialAccount === 'function'
+    const items = ['分享海报到朋友圈/好友']
+    if (hasOA) items.push('发表到公众号贴图')
+
+    wx.showActionSheet({
+      itemList: items,
+      success: ({ tapIndex }) => {
+        if (tapIndex === 0) {
+          wx.showShareImageMenu({ path: tempPath })
+          try { wx.reportEvent && wx.reportEvent('share_result', { channel: 'image' }) } catch (_) {}
+        } else if (tapIndex === 1 && hasOA) {
+          wx.shareToOfficialAccount({
+            title: '我用 Chwazi 选中了谁',
+            content: '所有人按住屏幕，命运随机选中一人——桌游聚会、班级抽签必备',
+            tags: ['来微信做个小程序', '手指选人', '桌游聚会'],
+            images: [tempPath],
+            path: '/pages/index/index',
+            success: () => {
+              wx.showToast({ title: '已发表', icon: 'success' })
+              try { wx.reportEvent && wx.reportEvent('share_result', { channel: 'official_account' }) } catch (_) {}
+            },
+          })
+        }
+      },
+    })
   },
 
   /** 统一清理所有定时器 */
@@ -125,6 +218,7 @@ Page({
     if (this.resetDelayTimer) { clearTimeout(this.resetDelayTimer); this.resetDelayTimer = null }
     if (this.statusClearTimer) { clearTimeout(this.statusClearTimer); this.statusClearTimer = null }
     if (this.toastFadeTimer) { clearTimeout(this.toastFadeTimer); this.toastFadeTimer = null }
+    if (this._harmonyTipTimer) { clearTimeout(this._harmonyTipTimer); this._harmonyTipTimer = null }
   },
 
   showToast(text) {
@@ -227,10 +321,26 @@ Page({
   // ========== 触控事件 ==========
 
   onTouchStart(e) {
+    // 用户一旦开始操作，立即关闭鸿蒙提示（双保险：pointer-events 在真机可能失效）
+    if (this.data.showHarmonyTip) {
+      this.dismissHarmonyTip()
+    }
+
     if (this.state === STATE.SELECTING) return
 
     if (this.state === STATE.RESULT) {
+      // We 分析：结果后再来一轮 → 用户黏性指标
+      try { wx.reportEvent && wx.reportEvent('second_round') } catch (_) {}
       this.resetGame()
+    }
+
+    // 用 e.touches 对账：清理之前 touchcancel 可能遗留的僵尸 finger
+    // （cancel 时我们没删，如果系统不再补发 touchend 就会残留）
+    if (e.touches) {
+      const activeIds = new Set(Array.from(e.touches).map(t => String(t.identifier)))
+      Object.keys(this.fingers).forEach(id => {
+        if (!activeIds.has(String(id))) delete this.fingers[id]
+      })
     }
 
     const touches = e.changedTouches
@@ -282,28 +392,32 @@ Page({
     }
   },
 
+  // 只处理 changedTouches 里真实抬起的手指。
+  // 不用 e.touches 做 diff——iOS 在多点上限触发 cancel 时 e.touches 可能已被清空，
+  // 会导致无辜的手指被误删（6 指按下触发 cancel → 前 5 个圆圈全消失）。
   onTouchEnd(e) {
-    if (this.state === STATE.SELECTING) {
-      // 选择动画中记录哪些手指离开了，但不中断动画
-      const touches = e.changedTouches
-      touches.forEach(touch => {
-        if (this.fingers[touch.identifier]) {
-          this.fingers[touch.identifier]._lifted = true
-        }
-      })
-      return
-    }
+    const changed = e.changedTouches || []
+
+    changed.forEach(touch => {
+      const id = touch.identifier
+      if (!(id in this.fingers)) return
+      if (this.state === STATE.SELECTING) {
+        this.fingers[id]._lifted = true
+      } else {
+        delete this.fingers[id]
+      }
+    })
+
+    if (this.state === STATE.SELECTING) return
+
+    const fingerCount = Object.keys(this.fingers).length
 
     if (this.state === STATE.RESULT) {
-      const touches = e.changedTouches
-      touches.forEach(touch => {
-        delete this.fingers[touch.identifier]
-        })
-      if (Object.keys(this.fingers).length === 0) {
+      if (fingerCount === 0) {
         if (this.resetDelayTimer) clearTimeout(this.resetDelayTimer)
         const rid = this.roundId
         this.resetDelayTimer = setTimeout(() => {
-          if (this.roundId !== rid) return  // 过期回调，丢弃
+          if (this.roundId !== rid) return
           this.resetDelayTimer = null
           this.resetGame()
         }, 300)
@@ -311,19 +425,16 @@ Page({
       return
     }
 
-    const touches = e.changedTouches
-    touches.forEach(touch => {
-      delete this.fingers[touch.identifier]
-    })
-
-    const fingerCount = Object.keys(this.fingers).length
-
     if (fingerCount === 0) {
       this.resetGame()
     } else if (this.state === STATE.WAITING) {
       this.restartStableTimer()
     }
   },
+
+  // touchcancel 是系统行为（多点上限/手势冲突），不代表用户抬手。
+  // 不清除 fingers——手指物理上还在屏幕，真抬手时 touchend 会补上。
+  onTouchCancel() {},
 
   // ========== 选择逻辑 ==========
 
@@ -431,6 +542,17 @@ Page({
     this.state = STATE.RESULT
     this.setData({ state: STATE.RESULT })
     this.resultTime = Date.now()
+
+    // We 分析关键事件 — 完成率 = 本事件 UV / 页面访问 UV（SEO 排名核心指标）
+    try {
+      const app = getApp()
+      const mode = app.globalData.mode
+      const fingerCount = Object.keys(this.fingers).length
+      wx.reportEvent && wx.reportEvent('finger_select_complete', {
+        mode,
+        finger_count: fingerCount,
+      })
+    } catch (_) {}
 
     // 双震动反馈 - 更有仪式感
     const app = getApp()
@@ -675,10 +797,9 @@ Page({
       finger.x, finger.y, currentRadius
     )
     const hlColor = getHighlightColor(finger.color)
-    mainGradient.addColorStop(0, hexToRgba('#ffffff', breathAlpha * 0.18))
-    mainGradient.addColorStop(0.15, hexToRgba(hlColor, breathAlpha * 0.95))
-    mainGradient.addColorStop(0.6, hexToRgba(finger.color, breathAlpha * 0.9))
-    mainGradient.addColorStop(1, hexToRgba(finger.color, breathAlpha * 0.7))
+    mainGradient.addColorStop(0, hexToRgba(hlColor, breathAlpha * 0.95))
+    mainGradient.addColorStop(0.5, hexToRgba(finger.color, breathAlpha * 0.95))
+    mainGradient.addColorStop(1, hexToRgba(finger.color, breathAlpha * 0.85))
     ctx.beginPath()
     ctx.arc(finger.x, finger.y, currentRadius, 0, Math.PI * 2)
     ctx.fillStyle = mainGradient
@@ -847,8 +968,8 @@ Page({
         finger.x - currentRadius * 0.15, finger.y - currentRadius * 0.15, 0,
         finger.x, finger.y, currentRadius
       )
-      mainGradient.addColorStop(0, hexToRgba('#ffffff', breathAlpha * 0.25))
-      mainGradient.addColorStop(0.3, hexToRgba(hlColor, breathAlpha))
+      mainGradient.addColorStop(0, hexToRgba(hlColor, breathAlpha))
+      mainGradient.addColorStop(0.5, hexToRgba(finger.color, breathAlpha * 0.95))
       mainGradient.addColorStop(1, hexToRgba(finger.color, breathAlpha * 0.9))
       ctx.beginPath()
       ctx.arc(finger.x, finger.y, currentRadius, 0, Math.PI * 2)
@@ -912,9 +1033,9 @@ Page({
       finger.x - currentRadius * 0.15, finger.y - currentRadius * 0.15, 0,
       finger.x, finger.y, currentRadius
     )
-    mainGradient.addColorStop(0, hexToRgba('#ffffff', breathAlpha * 0.15))
-    mainGradient.addColorStop(0.4, hexToRgba(groupColor, breathAlpha))
-    mainGradient.addColorStop(1, hexToRgba(groupColor, breathAlpha * 0.85))
+    mainGradient.addColorStop(0, hexToRgba(getHighlightColor(groupColor), breathAlpha * 0.95))
+    mainGradient.addColorStop(0.5, hexToRgba(groupColor, breathAlpha))
+    mainGradient.addColorStop(1, hexToRgba(groupColor, breathAlpha * 0.9))
     ctx.beginPath()
     ctx.arc(finger.x, finger.y, currentRadius, 0, Math.PI * 2)
     ctx.fillStyle = mainGradient

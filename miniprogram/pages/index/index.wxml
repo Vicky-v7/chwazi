@@ -13,14 +13,23 @@
     catchtouchstart="onTouchStart"
     catchtouchmove="onTouchMove"
     catchtouchend="onTouchEnd"
-    catchtouchcancel="onTouchEnd"
+    catchtouchcancel="onTouchCancel"
   >
-    <view class="hint-text" wx:if="{{showHint}}">所有人，把手指放上来</view>
+    <view class="hint-wrap" wx:if="{{showHint}}">
+      <view class="hint-text">所有人，把手指放上来</view>
+      <view class="hint-sub">稳住 2 秒，自动开始选人</view>
+      <view class="hint-scenes">桌游聚会 · 班级抽签 · 团建破冰 · 谁洗碗 · 酒局先手</view>
+    </view>
   </view>
 
   <!-- 设置按钮（首屏或结果态显示） -->
   <view class="settings-btn" catchtap="goSettings" wx:if="{{showHint || state === 'result'}}">
     <view class="settings-icon">⚙</view>
+  </view>
+
+  <!-- 分享按钮（仅结果态） -->
+  <view class="share-btn" catchtap="goShare" wx:if="{{state === 'result'}}">
+    <view class="share-icon">↗</view>
   </view>
 
   <!-- 当前模式提示 -->
@@ -31,6 +40,15 @@
   <!-- 状态提示（人数不足等） -->
   <view class="status-toast {{toastFading ? 'toast-hide' : 'toast-show'}}" wx:if="{{toastVisible}}">
     <text>{{statusText}}</text>
+  </view>
+
+  <!-- 鸿蒙系统双指手势提示（非阻断、仅首次） -->
+  <view class="harmony-tip" wx:if="{{showHarmonyTip}}">
+    <view class="harmony-tip-icon">💡</view>
+    <view class="harmony-tip-text">鸿蒙用户：若双指触发系统手势，可在「设置 - 辅助功能」临时关闭</view>
+    <view class="harmony-tip-close" catchtap="dismissHarmonyTip">
+      <text>✕</text>
+    </view>
   </view>
 
 </view>

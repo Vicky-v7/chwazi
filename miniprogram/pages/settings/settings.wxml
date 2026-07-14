@@ -11,7 +11,7 @@
     </view>
   </view>
 
-  <view class="content" style="padding-top: {{navHeight}}px;">
+  <view class="content" style="padding-top: calc({{statusBarHeight}}px + 88rpx + 24rpx);">
     <!-- 模式选择 -->
     <view class="section">
       <view class="section-title">选择模式</view>
@@ -107,6 +107,11 @@
           color="#5B8DEF"
         />
       </view>
+
+      <button class="feedback-item" open-type="feedback" hover-class="feedback-hover">
+        <text class="setting-label">意见反馈</text>
+        <text class="feedback-arrow">›</text>
+      </button>
     </view>
 
     <!-- 关于 -->
@@ -114,10 +119,14 @@
       <view class="section-title">关于</view>
       <view class="about-text">
         <text>Chwazi手指选人</text>
-        <text class="about-version">v1.0.0</text>
+        <text class="about-version">v1.0.4</text>
       </view>
       <view class="about-desc">
-        <text>把命运交给手指！所有人按住屏幕，屏息等待——被选中的就是天选之人。聚餐买单、桌游先手、团建分组、KTV选歌，一按搞定。不怪我，是手机选的。</text>
+        <view class="about-para">把命运交给手指 🫳</view>
+        <view class="about-para">所有人把手指放上来，屏住呼吸，等那根被天选的手指发光。</view>
+        <view class="about-para">适用场景：聚餐谁买单 / 桌游谁先手 / 团建分组 / KTV 抢麦 / 谁去楼下买奶茶 / 今晚谁洗碗……任何你不想做决定的时刻。</view>
+        <view class="about-para">选到了不想做？跟我没关系哦 是手机选的 🙅‍♀️</view>
+        <view class="about-signature">—— made with 🤖 & ☕</view>
       </view>
     </view>
   </view>
